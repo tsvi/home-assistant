@@ -4,15 +4,9 @@ import logging
 import voluptuous as vol
 
 from homeassistant.components.sensor import PLATFORM_SCHEMA
-from homeassistant.const import (
-    CONF_LATITUDE,
-    CONF_LONGITUDE,
-    CONF_NAME,
-    SUN_EVENT_SUNSET,
-)
+from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import Entity
-from homeassistant.helpers.sun import get_astral_event_date
 import homeassistant.util.dt as dt_util
 
 _LOGGER = logging.getLogger(__name__)
@@ -150,12 +144,6 @@ class JewishCalSensor(Entity):
         _LOGGER.debug("Now: %s Timezone = %s", now, now.tzinfo)
 
         today = now.date()
-        sunset = dt_util.as_local(
-            get_astral_event_date(self.hass, SUN_EVENT_SUNSET, today)
-        )
-
-        _LOGGER.debug("Now: %s Sunset: %s", now, sunset)
-
         location = GeoLocation('Home', latitude=self.latitude,
                                longitude=self.longitude,
                                time_zone=self.timezone)
@@ -168,45 +156,48 @@ class JewishCalSensor(Entity):
 
         date = JewishDate(in_israel=not self.diaspora)
         date.set_gregorian_date(*today.timetuple()[:3])
-        lagging_date = date
 
-        # Advance Hebrew date if sunset has passed.
-        # Not all sensors should advance immediately when the Hebrew date
-        # officially changes (i.e. after sunset), hence lagging_date.
-        if now > sunset:
-            date = date.forward()
-        today_times = make_zmanim(today)
-        if today_times.tzais() and now > today_times.tzais():
-            lagging_date = lagging_date.forward()
+        # The Jewish day starts after darkness (called "tzais") and finishes at
+        # sunset ("shkia"). The time in between is a gray area (aka "Bein
+        # Hashmashot" - literally: "in between the sun and the moon").
+
+        # For some sensors, it is more interesting to consider the date to be
+        # tomorrow based on sunset ("shkia"), for others based on "tzais".
+        # Hence the following variables.
+        after_tzais_date = after_shkia_date = date
+        if now > make_zmanim(today).shkia():
+            after_shkia_date = date.forward()
+
+        if now > make_zmanim(today).tzais():
+            after_tzais_date = date.forward()
 
         # Terminology note: by convention in py-libhdate library, "upcoming"
         # refers to "current" or "upcoming" dates.
         if self.type == 'date':
-            self._state = date.jewish_date
+            self._state = after_shkia_date.jewish_date
         elif self.type == 'weekly_portion':
             # Compute the weekly portion based on the upcoming shabbat.
-            self._state = lagging_date.upcoming_shabbat.parasha
+            self._state = after_tzais_date.upcoming_shabbat.parasha
         elif self.type == 'holiday_name':
-            self._state = date.significant_day()
+            self._state = after_shkia_date.significant_day()
         elif self.type == 'upcoming_shabbat_candle_lighting':
-            times = make_zmanim(lagging_date.gregorian_date)
+            times = make_zmanim(after_tzais_date.gregorian_date)
             self._state = times.candle_lighting()
         elif self.type == 'upcoming_candle_lighting':
-            times = make_zmanim(lagging_date.gregorian_date)
+            times = make_zmanim(after_tzais_date.gregorian_date)
             self._state = times.candle_lighting()
         elif self.type == 'upcoming_shabbat_havdalah':
-            times = make_zmanim(lagging_date.gregorian_date)
+            times = make_zmanim(after_tzais_date.gregorian_date)
             self._state = times.tzais()
         elif self.type == 'upcoming_havdalah':
-            times = make_zmanim(lagging_date.gregorian_date)
+            times = make_zmanim(after_tzais_date.gregorian_date)
             self._state = times.tzais()
         elif self.type == 'issur_melacha_in_effect':
-            self._state = make_zmanim(now).is_assur_bemelacha(
+            self._state = make_zmanim(today).is_assur_bemelacha(
                 now, in_israel=not self.diaspora)
         elif self.type == "omer_count":
             self._state = date.day_of_omer()
         else:
-            times = make_zmanim(today).zmanim
-            self._state = times[self.type].time()
+            self._state = make_zmanim(today)[self.type].time()
 
         _LOGGER.debug("New value: %s", self._state)
