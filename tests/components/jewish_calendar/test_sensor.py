@@ -137,7 +137,6 @@ class TestJewishCalenderSensor:
             False,
             "Rosh Hashana I",
         ),
-        (dt(2018, 9, 10), "UTC", 31.778, 35.235, "english", "holyness", False, 1),
         (
             dt(2018, 9, 8),
             "UTC",
@@ -205,7 +204,6 @@ class TestJewishCalenderSensor:
         "date_output_hebrew",
         "holiday_name",
         "holiday_name_english",
-        "holyness",
         "torah_reading",
         "first_stars_ny",
         "first_stars_jerusalem",
@@ -243,7 +241,7 @@ class TestJewishCalenderSensor:
             sensor_type=sensor,
             latitude=latitude,
             longitude=longitude,
-            timezone=time_zone,
+            timezone=tzname,
             diaspora=diaspora,
         )
         sensor.hass = self.hass
@@ -570,7 +568,7 @@ class TestJewishCalenderSensor:
                 sensor_type=sensor_type,
                 latitude=latitude,
                 longitude=longitude,
-                timezone=time_zone,
+                timezone=tzname,
                 diaspora=diaspora,
                 havdalah_offset=havdalah,
                 candle_lighting_offset=candle_lighting,
@@ -648,7 +646,7 @@ class TestJewishCalenderSensor:
             sensor_type="issur_melacha_in_effect",
             latitude=latitude,
             longitude=longitude,
-            timezone=time_zone,
+            timezone=tzname,
             diaspora=diaspora,
             havdalah_offset=havdalah,
             candle_lighting_offset=candle_lighting,
@@ -724,7 +722,7 @@ class TestJewishCalenderSensor:
             sensor_type="omer_count",
             latitude=latitude,
             longitude=longitude,
-            timezone=time_zone,
+            timezone=tzname,
             diaspora=diaspora,
         )
         sensor.hass = self.hass

@@ -599,9 +599,6 @@ hass-nabucasa==0.17
 # homeassistant.components.mqtt
 hbmqtt==0.9.4
 
-# homeassistant.components.jewish_calendar
-hdate==0.9.0
-
 # homeassistant.components.heatmiser
 heatmiserV3==0.9.1
 
@@ -1996,3 +1993,6 @@ zigpy-zigate==0.1.0
 
 # homeassistant.components.zoneminder
 zm-py==0.3.3
+
+# homeassistant.components.jewish_calendar
+zmanim==0.2.1

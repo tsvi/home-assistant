@@ -169,9 +169,6 @@ hass-nabucasa==0.17
 # homeassistant.components.mqtt
 hbmqtt==0.9.4
 
-# homeassistant.components.jewish_calendar
-hdate==0.9.0
-
 # homeassistant.components.workday
 holidays==0.9.11
 
@@ -412,3 +409,6 @@ zeroconf==0.23.0
 
 # homeassistant.components.zha
 zigpy-homeassistant==0.7.1
+
+# homeassistant.components.jewish_calendar
+zmanim==0.2.1

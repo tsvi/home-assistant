@@ -84,7 +84,6 @@ TEST_REQUIREMENTS = (
     "hass-nabucasa",
     "haversine",
     "hbmqtt",
-    "hdate",
     "holidays",
     "home-assistant-frontend",
     "homekit[IP]",
@@ -169,6 +168,7 @@ TEST_REQUIREMENTS = (
     "zeroconf",
     "zigpy-homeassistant",
     "bellows-homeassistant",
+    "zmanim",
     "py17track",
 )
 
