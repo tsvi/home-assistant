@@ -136,7 +136,7 @@ class JewishCalSensor(Entity):
 
     async def async_update(self):
         """Update the state of the sensor."""
-        from zmanim.hebrew_calendar.jewish_date import JewishDate
+        from zmanim.hebrew_calendar.jewish_calendar import JewishCalendar
         from zmanim.zmanim_calendar import ZmanimCalendar
         from zmanim.util.geo_location import GeoLocation
 
@@ -154,7 +154,7 @@ class JewishCalSensor(Entity):
                 candle_lighting_offset=self.candle_lighting_offset,
                 date=date, geo_location=location)
 
-        date = JewishDate(in_israel=not self.diaspora)
+        date = JewishCalendar(in_israel=not self.diaspora)
         date.set_gregorian_date(*today.timetuple()[:3])
 
         # The Jewish day starts after darkness (called "tzais") and finishes at
@@ -171,26 +171,52 @@ class JewishCalSensor(Entity):
         if now > make_zmanim(today).tzais():
             after_tzais_date = date.forward()
 
-        # Terminology note: by convention in py-libhdate library, "upcoming"
-        # refers to "current" or "upcoming" dates.
+        # Terminology note: "upcoming" refers to "current" or "upcoming" dates.
         if self.type == 'date':
             self._state = after_shkia_date.jewish_date
         elif self.type == 'weekly_portion':
             # Compute the weekly portion based on the upcoming shabbat.
-            self._state = after_tzais_date.upcoming_shabbat.parasha
+            next_reading_date = after_tzais_date
+            while not after_tzais_date.is_assur_bemelacha():
+                next_reading_date = next_reading_date.forward()
+            self._state = next_reading_date.parasha
         elif self.type == 'holiday_name':
-            self._state = after_shkia_date.significant_day()
+            self._state = after_tzais_date.significant_day()
+
         elif self.type == 'upcoming_shabbat_candle_lighting':
-            times = make_zmanim(after_tzais_date.gregorian_date)
+            upcoming_erev_shabbat = after_tzais_date
+            while not upcoming_erev_shabbat.forward().day_of_week == 7:
+                upcoming_erev_shabbat = upcoming_erev_shabbat.forward()
+            _LOGGER.debug("Next friday: %s", upcoming_erev_shabbat)
+
+            times = make_zmanim(upcoming_erev_shabbat.gregorian_date)
             self._state = times.candle_lighting()
+
         elif self.type == 'upcoming_candle_lighting':
-            times = make_zmanim(after_tzais_date.gregorian_date)
-            self._state = times.candle_lighting()
+            upcoming_candle_lighting = after_tzais_date
+            while not upcoming_candle_lighting.has_candle_lighting():
+                upcoming_candle_lighting = upcoming_candle_lighting.forward()
+            _LOGGER.debug("Next candle lighting: %s", upcoming_candle_lighting)
+
+            times = make_zmanim(upcoming_candle_lighting.gregorian_date)
+            if upcoming_candle_lighting.has_delayed_candle_lighting():
+                _LOGGER.debug("Special case: delayed candle_lighting")
+                self._state = times.tzais()
+            else:
+                self._state = times.candle_lighting()
         elif self.type == 'upcoming_shabbat_havdalah':
-            times = make_zmanim(after_tzais_date.gregorian_date)
+            upcoming_shabbat = after_tzais_date
+            while not upcoming_shabbat.day_of_week == 7:
+                upcoming_shabbat = upcoming_shabbat.forward()
+
+            times = make_zmanim(upcoming_shabbat.gregorian_date)
             self._state = times.tzais()
         elif self.type == 'upcoming_havdalah':
-            times = make_zmanim(after_tzais_date.gregorian_date)
+            upcoming_assur_bemelecha = after_tzais_date
+            while not upcoming_assur_bemelecha.is_assur_bemelacha():
+                upcoming_assur_bemelecha = upcoming_assur_bemelecha.forward()
+
+            times = make_zmanim(upcoming_assur_bemelecha.gregorian_date)
             self._state = times.tzais()
         elif self.type == 'issur_melacha_in_effect':
             self._state = make_zmanim(today).is_assur_bemelacha(
