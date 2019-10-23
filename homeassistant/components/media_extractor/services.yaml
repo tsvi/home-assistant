@@ -9,4 +9,7 @@ play_media:
       example: "https://soundcloud.com/bruttoband/brutto-11"
     media_content_type:
       description: The type of the content to play. Must be one of MUSIC, TVSHOW, VIDEO, EPISODE, CHANNEL or PLAYLIST MUSIC.
-      example: "music"
+      example: 'music'
+    cache:
+      description: Whether the content should be cached by homeassistant or not.
+      example: True
