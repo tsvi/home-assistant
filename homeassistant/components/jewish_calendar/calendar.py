@@ -12,10 +12,13 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import DOMAIN
 from .entity import JewishCalendarEntity
 
-CALENDAR_TYPE = EntityDescription(
-    key="calendar",
-    name="Calendar",
-    icon="mdi:calendar",
+CALENDAR_TYPES: tuple[EntityDescription, ...] = (
+    EntityDescription(
+        key="user_events",
+        name="User events",
+        icon="mdi:calendar",
+        entity_registry_enabled_default=True,
+    ),
 )
 
 async def async_setup_entry(
@@ -25,7 +28,10 @@ async def async_setup_entry(
 ) -> None:
     """Set up the Jewish Calendar config entry."""
     entry = hass.data[DOMAIN][config_entry.entry_id]
-    async_add_entities([JewishCalendar(config_entry, entry, CALENDAR_TYPE)])
+    async_add_entities(
+        JewishCalendar(config_entry, entry, description)
+        for description in CALENDAR_TYPES
+    )
 
 
 class JewishCalendar(JewishCalendarEntity, CalendarEntity):
