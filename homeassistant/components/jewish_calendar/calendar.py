@@ -2,8 +2,12 @@
 
 from datetime import datetime
 from typing import Any
-from homeassistant.components.calendar import CalendarEntity, CalendarEvent
-from homeassistant.components.calendar.const import CalendarEntityFeature
+
+from homeassistant.components.calendar import (
+    CalendarEntity,
+    CalendarEntityFeature,
+    CalendarEvent,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityDescription
@@ -20,6 +24,7 @@ CALENDAR_TYPES: tuple[EntityDescription, ...] = (
         entity_registry_enabled_default=True,
     ),
 )
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
