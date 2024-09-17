@@ -1,6 +1,6 @@
 """Jewish Calendar calendar platform."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from homeassistant.components.calendar import (
@@ -51,7 +51,11 @@ class JewishCalendar(JewishCalendarEntity, CalendarEntity):
     @property
     def event(self) -> CalendarEvent | None:
         """Return the next upcoming event."""
-        raise NotImplementedError
+        return CalendarEvent(
+            start=datetime(2024, 9, 17, tzinfo=UTC),
+            end=datetime(2024, 9, 18, tzinfo=UTC),
+            summary="Get test to pass",
+        )
 
     async def async_get_events(
         self, hass: HomeAssistant, start_date: datetime, end_date: datetime

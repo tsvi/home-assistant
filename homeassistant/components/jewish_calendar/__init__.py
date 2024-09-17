@@ -38,7 +38,7 @@ from .const import (
 )
 from .sensor import INFO_SENSORS, TIME_SENSORS
 
-PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SENSOR]
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.CALENDAR, Platform.SENSOR]
 
 CONFIG_SCHEMA = vol.Schema(
     {
